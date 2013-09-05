@@ -1,0 +1,13 @@
+/bin
+/cordova
+/libs
+/res
+/android-support-v4.jar
+/AndroidManifest.xml
+/ant.properties
+/build.xml
+/cordova-2.8.1.jar
+/proguard-project.txt
+/project.properties
+/src
+/gen

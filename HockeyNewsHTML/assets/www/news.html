@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Storage Example</title>
+
+    <script type="text/javascript" charset="utf-8" src="cordova-x.x.x.js"></script>
+    <script type="text/javascript" charset="utf-8">
+
+function initializePhoneGap( success, failure ) {
+    var timer = window.setInterval( function () {
+        if ( window.device ) {
+            window.clearInterval( timer );
+            success();
+        };
+    }, 100 );
+    window.setTimeout( function () { //failsafe
+        if ( !window.device ) { //phonegap failed
+            window.clearInterval( timer );
+            failure();
+        };
+    }, 5000 ); //5 seconds
+};
+
+window.onload = function () {
+    initializePhoneGap( function success() {
+        //start app
+        document.getElementById( 'result' ).textContent = 'phonegap: success';
+    }, function failure() {
+        //phonegap failed 
+        document.getElementById( 'result' ).textContent = 'phonegap: failure';
+    } );
+
+};
+
+    </script>
+  </head>
+  <body>
+   <div id="result">phonegap: news</div>
+  </body>
+</html>
