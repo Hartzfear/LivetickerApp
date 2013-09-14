@@ -3,13 +3,20 @@
   <head>
     <title>Storage Example</title>
 
-   <script language="javascript" type="text/javascript">setTimeout("location.reload();",15000);</script>
+   
 
 
 	<meta http-equiv="refresh" content="60">
    <script type="text/javascript" charset="utf-8" src="cordova.js"></script>
    
    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+   
+    <script type="text/javascript" charset="utf-8" src="js/date.format.js"></script>
+   <script language="javascript" type="text/javascript">setTimeout("location.reload();",15000);</script>
+    <script src="js/bootstrap.js"></script>
+	
+	<!-- CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet" media="screen">  
    <script type="text/javascript">
 	function initializePhoneGap( success, failure ) {
 	    var timer = window.setInterval( function () {
@@ -28,27 +35,146 @@
 	
 	window.onload = function () {
 	
+		/*Parameter lesen*/
    		var pars = window.location.toString();
-		var id = pars.substring(pars.indexOf('id=')+3);
-		if(id == 0){
-			var zusatz = '';
+		var fid = pars.substring(pars.indexOf('id=')+3);
+		if(fid == 0){
+			var zusatz = '?tag=getAllTickerEntries';
+			var param='?tag=getMatches';
 		} else {
-			var zusatz = '&id='+id;
+			var zusatz = '?tag=getTickerEntries&id='+fid;
+			var param='?tag=getOneMatch&id='+fid;
 		}
 		
+		var header="";
+		var partie="";
 		
 		
+		
+		/*JSON laden*/
 	    initializePhoneGap( function success() {
-	       $.getJSON('http://hockey-news.info/MobAppJsonSchnittstelle/index2.php?tag=getTickerEntries'+zusatz, function(data) {
+	    	    $.getJSON('http://hockey-news.info/MobAppJsonSchnittstelle/index2.php'+param, function(data) {
+				var items2 = [];
+					$.each(data.match, function(key, val) {			
+						var match_id = val.match_id;
+						var home_logo = val.home;
+						var home_name = val.home_name;
+						var home_short = val.home_short;
+						var away_logo = val.away;
+						var away_name = val.away_name;
+						var away_short = val.away_short;
+						var raw_date = val.matchdate;
+						var round_id = val.roundid;
+						var running = val.running;
+						var team1_result_split = val.team1_result_split;
+						var team2_result_split = val.team2_result_split;
+						var team1_result_ot = val.team1_result_os;
+						var team2_result_ot = val.team2_result_os;
+						var team1_result_ps = val.team1_result_ps
+						var team2_result_ps = val.team2_result_ps;
+						var drittel = val.drittel;
+						
+						
+						var status ="";
+						
+						/*Ergebnis*/
+						var tmp_home_score= team1_result_split.split(';');
+						var home_score = parseInt(tmp_home_score[0])+parseInt(tmp_home_score[1])+parseInt(tmp_home_score[2]);
+						
+						if(team1_result_ot > 0){
+							home_score = home_score+1;
+						}
+						
+						if(team1_result_ps > 0){
+							home_score = home_score+1;
+						}
+                        
+                        var tmp_away_score= team2_result_split.split(';');
+						var away_score = parseInt(tmp_away_score[0])+parseInt(tmp_away_score[1])+parseInt(tmp_away_score[2]);
+                                			
+						if(team2_result_ot > 0){
+							away_score = away_score+1;
+						}
+						
+						if(team2_result_ps > 0){
+							away_score = away_score+1;
+						}  
+                                
+                        /*Datumsformat*/
+                        
+						var match_date = new Date(raw_date);
+						match_date = match_date.format("HH:MM dd.mm.yyyy");         
+                                                        
+						/*läuft*/
+						if(drittel == 0){
+							status = "Vor dem Spiel";
+						}
+						if(drittel == 1){
+							status = "1. Drittel";
+						}
+						if(drittel == 2){
+							status = "2. Drittel";
+						}
+						if(drittel == 3){
+							status = "3. Drittel";
+						}
+						if(drittel == 4){
+							status = "in OT";
+						}
+						if(drittel == 5){
+							status = "PS";
+						}
+						if(drittel == 8){
+							status = "Beendet";
+						}
+						
+						if(running == 1){
+							var color="red";
+						} else {
+							var color="black";
+						}
+						
+					if(fid != 0){
+					header='<div style="width:100%; height: auto; margin:0; border:0; padding:0;"">'+
+						   '<table id="'+match_id+'" data-role="listview" style="text-align: center; valign: middle; width:100%;">'+
+				 			   '<tr><td id="hn'+match_id+'"><b>'+home_name+'</b></td><td></td><td id="an'+match_id+'"><b>'+away_name+'</b></td></tr>'+
+		     	 			   '<tr><td><img src="'+home_logo+'" class="img-rounded"/></td><td><b><font size="4"><font color="'+color+'">'+home_score+':'+away_score+'</b></font></td><td><img src="'+away_logo+'" class="img-rounded"/></td></tr>'+ 
+		     	 			   '<tr><td></td><td>'+status+'</td><td></td></tr></td></tr>'+
+		     	 		   '</table><hr>';
+					} 
+					
+							
+					items2.push(header);	
+						
+					});
+					
+				if($("#header").length > 0){
+					$('#header').replaceWith(header);
+				} else {	
+				
+					$(items2.join('')).appendTo('body');	
+					
+				}	
+					
+			});
+	    	    
+	       $.getJSON('http://hockey-news.info/MobAppJsonSchnittstelle/index2.php'+zusatz, function(data) {
 				var items = [];
 					$.each(data.entry, function(key, val) {	
 					
-						/*Basic-Infos f�r Tickermessage*/
+						/*Basic-Infos fuer Tickermessage*/
 						var id = val.entry_id;
 						var match_id = val.match_id;
+						var home_logo = val.home_logo;
+						var home_name = val.home_name;
+						var home_shortname = val.home_shortname;
+						var away_logo = val.away_logo;
+						var away_name = val.away_name;
+						var away_shortname = val.away_shortname;
+						var drittel = val.drittel;
 						var logo = val.logo;
 						var team_name = val.team_name;
-						var team_shortname = val.team_shortname;
+						var team_shortname = val.team_short;
 						var strafe = val.strafe;
 						var reason = val.reason;
 						var zusatz = val.zusatz;
@@ -62,53 +188,93 @@
 						var spielstand = val.spielstand; 
 						var powerplay = val.powerplay;
 						
+						if(fid == 0){
+						header="";
+						} 
+						
+						
 						if(id == null){
-							var html = '<div> Bisher keine Einträge zu diesem Spiel vorhanden </div><hr>';
+							var html = '<div> Bisher keine Eintr&#228;ge zu diesem Spiel vorhanden </div><hr style="width: 100%;">';
 						}
 						
 						if(text == null){
-							var html ="";
+							var html ='<table>'+
+							'<tr><td style="height: 100%; width: 15%;"></td><td><div id="playtime"><b>'+playtime+'</b></div></td></tr>'+
+							'<tr><td style="width: 60px;"></td><td><div id="text"></div></td></tr>'+
+							'</table>';
 						}
 						
 						
 						/* 0 text, 1 tor, 2 strafe*/
 						if((status == 0) && (text != null)){
-							var html='<div><div id="playtime"><b>'+playtime+'</b></div><div id="text">'+text+'</div></div><hr>';
+							if(fid == 0){
+								partie = home_shortname+'-'+away_shortname+'<br>';
+							} 
+							
+							var html='<table>'+
+							'<tr><td></td><td>'+partie+'</td></tr>'+
+							'<tr><td style="height: 100%; width: 15%;"></td><td><div id="playtime"><b>'+playtime+'</b></div></td></tr>'+
+							'<tr><td style="width: 60px;"></td><td><div id="text">'+text+'</div></td></tr>'+
+							'</table><hr style="width: 100%;">';
 						}
 						
 						if(status == 1){
-						
+					
+							if(fid == 0){
+								partie = home_shortname+'-'+away_shortname+', Spielstand: '+spielstand;
+							} 
+							
 							if((assist1 == "") && (assist2 == "")){
-								var html='<div><div id="playtime"><b>'+playtime+'</b></div><div id="tor"><b>TOR: </b></div><div id="spieler">'+player+'</div><div id="text">'+text+'</div></div><hr>';
+								var html='<table>'+
+							'<tr><td style="width: 60px"></td><td>'+partie+'</td></tr>'+
+							'<tr><td style="height: 100%;"><img src="'+logo+'" style="width: 60px"/></td><td><b>'+playtime+'- TOR '+team_shortname+': </b>'+player+'</b><br></td></tr>'+
+							'<tr><td></td><td>'+text+'</td></tr>'+
+							'</table><hr style="width: 100%;">';
 							}
 							
 							if((assist1 != "") && (assist2 == "")){
-								var html='<div><div id="playtime"><b>'+playtime+'</b></div><div id="tor"><b>TOR: </b></div><div id="spieler">'+player+' ('+assist1+')</div><div id="text">'+text+'</div></div><hr>';
+								var html='<table>'+
+							'<tr><td style="width: 60px"></td><td>'+partie+'</td></tr>'+
+							'<tr><td style="height: 100%;"><img src="'+logo+'" style="width: 60px"/></td><td><b>'+playtime+'- TOR '+team_shortname+':</b> '+player+'<br>'+
+							'<tr><td></td><td><b>Assist: </b>'+assist1+'<br></td></tr>'+
+							'<tr><td></td><td>'+text+'</td></tr>'+
+							'</table><hr style="width: 100%;">';
 							}
 							
 							if((assist2 != "") && (assist1 == "")){
-								var html='<div><div id="playtime"><b>'+playtime+'</b></div><div id="tor"><b>TOR: </b></div><div id="spieler">'+player+' ('+assist2+')</div><div id="text">'+text+'</div></div><hr>';
+								var html='<table>'+
+							'<tr><td style="width: 60px"></td><td>'+partie+'</td></tr>'+
+							'<tr><td style="height: 100%;"><img src="'+logo+'" style="width: 60px"/></td><td><b>'+playtime+'- TOR '+team_shortname+': </b>'+player+'<br>'+
+							'<tr><td></td><td><b>Assist: </b>'+assist2+'<br></td></tr>'+
+							'<tr><td></td><td>'+text+'</td></tr>'+
+							'</table><hr style="width: 100%;">';
 							}
 							
 							if((assist1 != "") && (assist2 != "")){
-								var html='<div><div id="playtime"><b>'+playtime+'</b></div><div id="tor"><b>TOR: </b></div><div id="spieler">'+player+' ('+assist1+',  '+assist2+')</div><div id="text">'+text+'</div></div><hr>';
+								var html='<table>'+
+							'<tr><td style="width: 60px"></td><td>'+partie+'</td></tr>'+
+							'<tr><td style="height: 100%;"><img src="'+logo+'" style="width: 60px"/></td><td><b>'+playtime+'- TOR '+team_shortname+': </b>'+player+'<br>'+
+							'<tr><td></td><td><b>Assists:  </b>'+assist1+', '+assist2+'<br></td></tr>'+
+							'<tr><td></td><td>'+text+'</td></tr>'+
+							'</table><hr style="width: 100%;">';
 							}
 												
 						}
 						
 									
-									
 						if(status == 2){
+						
+							
 							if(strafe == 0){
 								
 								if(zusatz == 2){
-									straftext='<div id="strafe">Disziplinarstrafe<div id="reason"> Grund: '+reason+' </div>';
+									straftext='Disziplinarstrafe f&#252;r '+reason;
 								}
 								if(zusatz == 3){
-									straftext='<div id="strafe">Spieldauer<div id="reason"> Grund: '+reason+' </div>';
+									straftext='Spieldauer f&#252;r '+reason;
 								}
 								if(zusatz == 4){
-									straftext='<div id="strafe">Matchstrafe<div id="reason"> Grund: '+reason+' </div>';
+									straftext='Matchstrafe f&#252;r'+reason;
 								}
 								else {
 									straftext='';
@@ -118,39 +284,49 @@
 							if(strafe != 0){
 						
 								if(zusatz == 0){
-									straftext='<div id="strafe">'+strafe+' Minuten<div id="reason"> Grund: '+reason+' </div>';
+									straftext=strafe+' Minuten f&#252;r '+reason;
 								}
 								if(zusatz == 1){
-									straftext='<div id="strafe">'+strafe+'+2 Minuten<div id="reason"> Grund: '+reason+' </div>';
+									straftext=strafe+'+2 Minuten f&#252;r '+reason;
 									
 								}
 								if(zusatz == 2){
-									straftext='<div id="strafe">'+strafe+'+10 Minuten<div id="reason"> Grund: '+reason+' </div>';
+									straftext=strafe+'+10 Minuten f&#252;r '+reason;
 								}
 								if(zusatz == 3){
-									straftext='<div id="strafe">'+strafe+'+20 Minuten<div id="reason"> Grund: '+reason+' </div>';
+									straftext=strafe+'+20 Minuten f&#252;r '+reason;
 								}
 								if(zusatz == 4){
-									straftext='<div id="strafe">'+strafe+'+25 Minuten<div id="reason"> Grund: '+reason+' </div>';
+									straftext=strafe+'+25 Minuten f&#252;r '+reason;
 								}
 							}
 							
 						
 						
-							var html='<div style="float:left;"><div id="playtime"><b>'+playtime+'</b></div><div id="strafe"><b>STRAFE:</b></div><div id="spieler">'+player+'</div>'+straftext+'</div><div id="text">'+text+'</div><hr>';
+							var html='<table >'+
+							'<tr><td style="width: 60px"></td><td>'+partie+'</td></tr>'+
+							'<tr><td style="height: 100%;">'+
+							'<img src="'+logo+'" style="width: 60px"/></td><td><b>'+playtime+'- STRAFE '+team_shortname+': </b>'+player+'<br>'+
+							''+straftext+'<br></td></tr>'+
+							'<tr><td></td><td>'+text+'</td></tr>'+
+							'</table><hr style="width: 100%;">';
 						}
 						
 						
 						
 						items.push(html);
 					});
-					
-				$('<ul/>', {
-				'class': 'my-new-list',
-				html: items.join('')
-				}).appendTo('body');
+				
+								
+				$(items.join('')).appendTo('body');	
+				
+				$('</div>').appendTo('body');
+				
+				
 			});
 	    }, function failure() {
+	    	$('<div> Noch keine Eintr&#228;ge vorhanden! </div>').appendTo('body');
+	    	
 			});
 	   
 	}; 	
@@ -160,7 +336,7 @@
    </script>
 
   </head>
-  <body>
+  <body background="img/bg.jpg">
    <div id="stage">
           
    </div>
